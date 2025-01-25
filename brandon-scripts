@@ -1,0 +1,174 @@
+Brandon Norman's Scripts
+
+// setup apk package manager
+setup-apkrepos -cf
+apk update
+setup-alpine
+
+
+// setup users
+adduser <username>
+addgroup <username> wheel
+sudo adduser brandon
+
+//create a non-root user and add it to the wheel group
+apk add sudo
+echo '%wheel ALL=(ALL) ALL' >> /etc/sudoers
+
+//Configure sudo: Install sudo and allow the wheel group to use it:
+adduser <username>
+addgroup <username> wheel
+
+// Enable and configure the firewall (iptables):
+apk add iptables ip6tables
+rc-update add iptables
+rc-update add ip6tables
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables-save > /etc/iptables/rules-save
+
+// enable automatic updates
+apk add alpine-conf
+echo "auto_upgrade=1" >> /etc/apk/world
+
+//hardening
+apk add fail2ban rkhunter openssh
+// Disable root SSH login and password authentication: Edit /etc/ssh/sshd_config
+PermitRootLogin no
+PasswordAuthentication no
+// restart ssh
+service sshd restart
+// Enable AppArmor for process-level security:
+apk add apparmor
+rc-update add apparmor boot
+service apparmor start
+// secure shared memory
+add the followe to /etc/fstab
+tmpfs /dev/shm tmpfs defaults,noexec,nosuid,nodev 0 0
+
+Install intrusion detection and prevention tools:
+apk add psad tripwire
+Configure and initialize:
+
+For psad, edit /etc/psad/psad.conf.
+For tripwire, initialize the database with:
+sh
+Copy
+Edit
+tripwire --init
+Install a log monitoring service (e.g., Logwatch):
+
+sh
+Copy
+Edit
+apk add logwatch
+
+ Kernel Hardening
+Enable sysctl hardening: Edit /etc/sysctl.conf and include:
+
+arduino
+Copy
+Edit
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_max_syn_backlog = 2048
+net.ipv4.tcp_rfc1337 = 1
+net.ipv4.icmp_echo_ignore_all = 1
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.default.secure_redirects = 0
+Apply changes:
+
+sh
+Copy
+Edit
+sysctl -p
+Install and enable grsecurity (optional, but recommended):
+
+sh
+Copy
+Edit
+apk add linux-grsec
+6. Monitoring and Alerts
+Install and configure monitoring tools:
+
+sh
+Copy
+Edit
+apk add htop glances
+Set up email alerts for unusual activities (e.g., msmtp for email notifications):
+
+sh
+Copy
+Edit
+apk add msmtp
+Enable regular system auditing with auditd:
+
+sh
+Copy
+Edit
+apk add audit
+rc-update add auditd
+service auditd start
+7. Regular Maintenance
+Keep the system updated:
+
+sh
+Copy
+Edit
+apk update && apk upgrade
+Check for rootkits and suspicious activities regularly:
+
+sh
+Copy
+Edit
+rkhunter --checkall
+Review logs with logwatch:
+
+sh
+Copy
+Edit
+logwatch --detail high
+
+// setup sudo curl wget and equivalent to build-essential
+sudo rc-update add docker boot
+apk add sudo curl wget alpine-sdk
+apk add --update docker docker-compose openrc
+rc-update add docker boot
+sudo rc-update add docker boot
+service docker start
+
+// SETUP DOCKGE (GUI FOR DOCKER-COMPOSE VERY HANDY)
+# Create directories that store your stacks and stores Dockge's stack
+mkdir -p /opt/stacks /opt/dockge
+cd /opt/dockge
+
+# Download the compose.yaml
+curl https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml --output compose.yaml
+
+# Start the server
+docker compose up -d
+
+# If you are using docker-compose V1 or Podman
+# docker-compose up -d
+
+// INSTALL PORTAINER ON ALPINE LINUX
+sudo docker pull portainer/portainer-ce
+sudo docker images
+sudo docker run -d -p 9000:9000 --name my-portainer-container portainer/portainer-ce
+sudo docker ps
+
+should show that the portainer is up on :9000
+
+
+apk add vsftpd
+apk
