@@ -171,4 +171,4 @@ should show that the portainer is up on :9000
 
 
 apk add vsftpd
-apk
+apk add bash openjdk7-jre
